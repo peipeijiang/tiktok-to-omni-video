@@ -1,0 +1,4 @@
+interface:
+  display_name: "TikTok to Omni Video"
+  short_description: "Analyze TikTok video and audio, then render one clip at a time"
+  default_prompt: "Use $tiktok-to-omni-video to analyze these TikTok links with local Whisper and full-track audio evidence, preserve the original causal and comedic logic, write checked English replication and cat/dog transfer prompts, then generate only the first Omni Flash clip. Wait for my review; when I say continue, submit all remaining videos."
