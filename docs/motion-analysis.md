@@ -15,6 +15,8 @@ frame,point_id,x,y,visible
 
 Use two to five stable points per active limb. `cotracker_npz_to_csv.py` converts an NPZ containing `tracks` shaped `T,N,2` (or `1,T,N,2`) to that schema.
 
+When CoTracker is impractical, `lk_points_to_csv.py` tracks manually seeded points at the source video's native frame rate with Lucas–Kanade optical flow and writes the same schema. Inspect those tracks before treating them as a motion contract: optical flow can drift during occlusion or blur.
+
 ## Example
 
 ```bash
@@ -24,6 +26,14 @@ python3 scripts/build_motion_spec.py tracks.csv \
   --out artifacts/source-motion-spec.json
 python3 scripts/render_omni_motion_block.py artifacts/source-motion-spec.json \
   --subject "The hairless cat" --target "the black sofa"
+```
+
+Fast local fallback for manually inspected seeds:
+
+```bash
+python3 scripts/lk_points_to_csv.py source.mp4 \
+  --points '{"paw0":[30,330],"paw1":[54,312],"paw2":[214,366],"paw3":[232,392]}' \
+  --out tracks.csv
 ```
 
 The axis points in the visual direction of the strike. Check the resulting extension timestamps against dense frames before treating the report as evidence.
