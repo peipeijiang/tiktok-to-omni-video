@@ -12,6 +12,7 @@ Improve faithful Omni Flash T2V recreation when a short video depends on fast re
 4. Convert tracked-point trajectories to a machine-readable motion contract.
 5. Render an Omni-only motion paragraph; it never emits Seedance tags or reference-upload syntax.
 6. Re-run the motion contract against a generated clip to quantify cadence loss before a paid retry.
+7. Cache an evidence-labelled impact contract, compile three stable batch variants, and rank output candidates before one-variable repair.
 
 ## Non-goals
 
@@ -25,8 +26,9 @@ Improve faithful Omni Flash T2V recreation when a short video depends on fast re
 |---|---|---|
 | Semantics | `watch` frames plus local audio analysis | plot, shot, fixed inventory, comic mechanism |
 | Kinematics | Native-rate tracked points | extension times, stroke rate, amplitude, velocity, alternation |
+| Contact proxy | Native-rate points plus a verified target point | geometric contact candidates, force anchor, target response note |
 | Prompt | Both layers | English Omni Flash T2V brief with timing and stability locks |
-| QA | Same analyses on generated video | source/output delta and a single-variable repair target |
+| QA | Same analyses on generated video | ranked batch candidates and a single-variable repair target |
 
 ## Delivery checks
 

@@ -98,6 +98,19 @@ When a gesture is fast, cyclic, occluded, contact-sensitive, or central to the p
 3. Treat the JSON as evidence, not as an instruction to copy unseen events. Keep uncertain or invisible intervals marked uncertain.
 4. Make the prompt state the actor, movement direction, measured cycle rate, extension-and-recoil path, stable body anchors, and end state. “Fast” or “energetic” alone is not a valid replacement.
 5. Run the same analysis on the generated clip. Report source-versus-output rates and pauses. A result that preserves the action category but misses cadence fails motion fidelity.
+6. When the action must look forceful, build an evidence-labelled `impact-spec.json` with `scripts/build_impact_spec.py`: a verified force anchor, a manually verified target point, geometric contact candidates at extension peaks, and only source-visible target response. Do not call a geometric candidate a real collision or physical simulation.
+
+### Fast batch route for high-temporal actions
+
+For a batch, analyze each source once and cache its `motion-spec.json` and, when contact matters, `impact-spec.json`. Compile the checked English base prompt with `scripts/compile_omni_batch.py`. It produces three stable T2V-only variants per source in source order:
+
+1. `cadence`: preparation → directed extension → immediate recoil at the measured rate;
+2. `impact`: cadence plus anchor → target → visible contact → rebound causality;
+3. `framing`: impact plus a verified source composition lock.
+
+The batch input must provide a complete evidence-checked English `base_prompt`, `subject`, source ID, artifact paths, and framing lock. The compiler rejects `@Video`/`@Image` tags. It does not upload a source or install/download a model. Submit its job list with the existing manifest and first-video gate; after explicit continuation use `--all-remaining`.
+
+For each generated candidate, repeat tracking and, only when its target point remains valid in the generated framing, build a generated impact spec. Use `scripts/score_impact_batch.py` to rank rate, alternation, and geometric-contact similarity and return one repair profile. If framing moved or contact cannot be visually established, use `impact_visual_check`; never score arbitrary pixel coordinates as contact. See `docs/batch-impact-workflow.md` for the exact JSON formats.
 
 For the common pet-paw case, the prompt should say that each paw starts near a compact guard, snaps toward the target, immediately recoils, and hands off to the opposite paw at the measured rate. It must distinguish local directional motion blur on the paw from global blur and must forbid slow waving, held poses, and unrelated dance gestures.
 

@@ -16,13 +16,16 @@ flowchart LR
   V --> A[本地 Whisper：语音与音轨]
   V --> T[原始帧率轨迹]
   T --> M[motion-spec.json]
+  M --> I[impact-spec.json]
   W --> P[Omni 英文 T2V 提示词]
   A --> P
   M --> P
+  I --> P
   P --> O[Omni Flash 首条生成]
-  O --> Q[同轨迹 QA]
+  O --> Q[同轨迹/接触候选 QA]
   M --> Q
-  Q --> R[motion-delta.json 与单变量修复]
+  I --> Q
+  Q --> R[批量排序与单变量修复]
 ```
 
 ## 快速开始
@@ -54,6 +57,7 @@ python3 scripts/render_omni_motion_block.py artifacts/source-motion-spec.json \
 | `watch` 帧与本地音频分析 | 固定镜头、角色、道具、动作因果、笑点和声音证据 |
 | `tracks.csv` | 原始帧率点轨迹；每行是一个可见点的位置 |
 | `motion-spec.json` | 前冲时间、连击速率、振幅、峰值速度、左右交替 |
+| `impact-spec.json` | 发力锚点、目标点、几何接触候选、可见目标反馈 |
 | Omni 英文提示词 | 场景与因果锁 + 可测量运动段 + 连续性约束 |
 | `motion-delta.json` | 原片与成片在节奏、振幅、速度、交替性上的差异 |
 
@@ -62,6 +66,10 @@ python3 scripts/render_omni_motion_block.py artifacts/source-motion-spec.json \
 这是纯 T2V 工作流：提示词只写英文自然语言，不写 `@Video1`、`@Image1` 或上传引用。每条任务固定为 10 秒、9:16、720P、一个连续手机镜头；首条任务下载并通过容器、时长和尺寸检查后才允许继续队列。
 
 对于高速动作，提示词必须包含动作主体、前冲方向、测得频率、前冲→回收路径、稳定物和终态。例如，不能只写 `fast punches`，而要写每只前爪的测得连击速率、紧凑起手、短路径前冲和立即回收。完整规则见 [运动分析文档](docs/motion-analysis.md) 与 [Omni 提示词契约](docs/omni-prompt-contract.md)。
+
+## 快速批量与击中感
+
+批量任务默认不下载模型权重：使用 OpenCV 光流、原始帧率轨迹和缓存 JSON。对每条源视频只分析一次，再自动编译 `cadence`、`impact`、`framing` 三个 Omni 配方；成片按速率、交替和几何接触候选排序，只重试一个失败维度。完整命令、批次 JSON 格式与“几何接触不是物理仿真”的限制见 [批量冲量工作流](docs/batch-impact-workflow.md)。
 
 ## 运动 QA
 

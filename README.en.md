@@ -16,13 +16,16 @@ flowchart LR
   V --> A[Local Whisper: speech and audio]
   V --> T[Native-rate tracked points]
   T --> M[motion-spec.json]
+  M --> I[impact-spec.json]
   W --> P[English Omni T2V prompt]
   A --> P
   M --> P
+  I --> P
   P --> O[First Omni Flash render]
-  O --> Q[Repeat trajectory QA]
+  O --> Q[Repeat trajectory/contact-candidate QA]
   M --> Q
-  Q --> R[motion-delta.json and one-variable repair]
+  I --> Q
+  Q --> R[Batch ranking and one-variable repair]
 ```
 
 ## Quick start
@@ -54,6 +57,7 @@ The final command prints an English motion paragraph that can be inserted into a
 | `watch` frames and local audio analysis | Camera, subjects, props, causal action, comedy, and audio evidence |
 | `tracks.csv` | Native-rate point tracks; one visible point position per row |
 | `motion-spec.json` | Extension timing, stroke rate, amplitude, peak speed, and alternation |
+| `impact-spec.json` | Force anchor, target point, geometric contact candidates, and verified target response |
 | English Omni prompt | Scene and causality locks plus measurable motion and continuity constraints |
 | `motion-delta.json` | Source-versus-output cadence, amplitude, speed, and alternation differences |
 
@@ -62,6 +66,10 @@ The final command prints an English motion paragraph that can be inserted into a
 This is a T2V-only workflow: prompts contain English natural language, never `@Video1`, `@Image1`, or reference-upload syntax. Each job is a 10-second, 9:16, 720P continuous phone shot. The first job must download and pass container, duration, and dimension checks before the queue continues.
 
 A fast action needs an actor, forward direction, measured rate, extension-to-recoil path, stable anchors, and an endpoint. `fast punches` is not enough; use the measured cadence, compact guard, short extension, and immediate recoil. See [motion analysis](docs/motion-analysis.md) and the [Omni prompt contract](docs/omni-prompt-contract.md).
+
+## Fast batches and impact
+
+The batch path downloads no model weights. It uses OpenCV optical flow, native-rate tracks, and cached JSON: analyze each source once, compile `cadence`, `impact`, and `framing` Omni variants, rank generated candidates by rate, alternation, and geometric contact candidates, then repair one failed dimension only. See the [batch impact workflow](docs/batch-impact-workflow.md) for commands, JSON inputs, and the important limitation that geometric contact is not a physics simulation.
 
 ## Motion QA
 
