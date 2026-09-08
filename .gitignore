@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+.venv/
+artifacts/
+videos/
+*.mp4
+*.mov
+*.mkv
+*.wav
+*.npz
+!.github/workflows/*.yml

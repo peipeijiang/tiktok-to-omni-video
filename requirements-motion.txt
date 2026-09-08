@@ -1,0 +1,2 @@
+numpy>=1.26
+# Optional: install CoTracker separately to create the NPZ input.
