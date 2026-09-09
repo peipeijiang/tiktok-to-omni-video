@@ -28,7 +28,7 @@ The manual target point is deliberate. A broad semantic label such as “sofa”
 
 ## Compile three reusable variants
 
-Create `batch.json`. Paths are relative to this file; `base_prompt` is the already evidence-checked, complete English Omni prompt without reference tags.
+Create `batch.json`. Paths are relative to this file; `base_prompt` is the already evidence-checked, complete English Omni prompt without reference tags. `reference_images` is optional and may hold one to three pose/storyboard image paths or HTTP(S) URLs.
 
 ```json
 [
@@ -39,6 +39,7 @@ Create `batch.json`. Paths are relative to this file; `base_prompt` is the alrea
     "action": "alternating paw strikes",
     "motion_spec": "artifacts/clip-1-motion.json",
     "impact_spec": "artifacts/clip-1-impact.json",
+    "reference_images": ["artifacts/clip-1-pose-board.jpg"],
     "framing_lock": "tight left-facing crop; the sofa hit area remains at upper left; no full-body wide view."
   }
 ]
@@ -55,7 +56,7 @@ This emits three jobs per source in stable order:
 2. `impact`: cadence plus anchor → target → contact → rebound causality.
 3. `framing`: impact plus the explicit source camera/composition lock.
 
-The output remains Omni T2V-only: it rejects `@Video` and `@Image` syntax. Submit it with the existing manifest runner. The first-job review gate remains in force; after explicit continuation, use `--all-remaining` for the already compiled queue.
+The output rejects `@Video` and `@Image` syntax in prompts, and preserves approved `reference_images` as a separate job field. The manifest runner sends that field to Omni Flash as `params.images`. Submit it with the existing manifest runner. The first-job review gate remains in force; after explicit continuation, use `--all-remaining` for the already compiled queue.
 
 ## Batch QA and one-variable repair
 

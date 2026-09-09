@@ -103,6 +103,7 @@ def main() -> int:
                     "filename": job_id,
                     "prompt": prompt,
                     "metadata": {"source_id": item["source_id"], "profile": profile, "version": args.version},
+                    **({"reference_images": item["reference_images"]} if item.get("reference_images") else {}),
                 }
             )
     args.out.parent.mkdir(parents=True, exist_ok=True)

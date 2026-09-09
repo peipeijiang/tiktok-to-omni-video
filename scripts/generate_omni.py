@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import json
+import mimetypes
 import os
 import re
 import sys
@@ -12,6 +14,7 @@ import urllib.request
 from pathlib import Path
 
 BASE = "https://api.lk888.ai"
+MAX_REFERENCE_IMAGES = 3
 
 
 def request_json(url: str, method: str, payload: dict | None, key: str, timeout: int = 30) -> dict:
@@ -45,13 +48,45 @@ def save_manifest(path: Path, manifest: dict) -> None:
         pass
 
 
+def materialize_reference_images(values: object, source_root: Path) -> list[str]:
+    """Return Updrama `params.images` values without persisting local image bytes.
+
+    The documented API accepts upload values in `params.images`. HTTP(S) and
+    existing data URLs are already portable. A local story board is encoded only
+    for the outgoing request so its bytes never enter the jobs file or manifest.
+    """
+    if values is None:
+        return []
+    if not isinstance(values, list) or not all(isinstance(value, str) for value in values):
+        raise ValueError("reference_images must be a list of one to three image paths or URLs")
+    if not 1 <= len(values) <= MAX_REFERENCE_IMAGES:
+        raise ValueError(f"reference_images must contain one to {MAX_REFERENCE_IMAGES} images")
+    prepared: list[str] = []
+    for value in values:
+        if value.startswith(("https://", "http://", "data:image/")):
+            prepared.append(value)
+            continue
+        path = Path(value)
+        if not path.is_absolute():
+            path = source_root / path
+        if not path.is_file():
+            raise ValueError(f"reference image not found: {path}")
+        mime_type, _encoding = mimetypes.guess_type(path.name)
+        if mime_type not in {"image/jpeg", "image/png", "image/webp"}:
+            raise ValueError(f"reference image must be PNG, JPEG, or WebP: {path}")
+        payload = base64.b64encode(path.read_bytes()).decode("ascii")
+        prepared.append(f"data:{mime_type};base64,{payload}")
+    return prepared
+
+
 def create_job(
     job: dict,
     manifest: dict,
     manifest_path: Path,
     key: str,
     model: str,
-    duration: str | None,
+    duration: str,
+    source_root: Path,
 ) -> dict:
     job_id = str(job["job_id"])
     if job_id in manifest:
@@ -61,9 +96,15 @@ def create_job(
     manifest[job_id] = record
     save_manifest(manifest_path, manifest)
     try:
-        params = {"aspect_ratio": "9:16"}
-        if duration is not None:
-            params["duration"] = duration
+        params = {
+            "aspect_ratio": "9:16",
+            "duration": duration,
+            "enhance_prompt": False,
+            "enable_upsample": False,
+        }
+        reference_images = materialize_reference_images(job.get("reference_images"), source_root)
+        if reference_images:
+            params["images"] = reference_images
         response = request_json(
             f"{BASE}/v1/media/generate",
             "POST",
@@ -141,8 +182,8 @@ def main() -> int:
     )
     parser.add_argument("--out-dir", type=Path, default=Path.home() / "Desktop" / "wibly-videos")
     parser.add_argument("--manifest", type=Path, default=None)
-    parser.add_argument("--model", default="omni_flash-10s")
-    parser.add_argument("--duration", choices=("4", "6", "8", "10"), default=None)
+    parser.add_argument("--model", default="omni-flash")
+    parser.add_argument("--duration", choices=("4", "6", "8", "10"), default="10")
     args = parser.parse_args()
     if not args.all_remaining and args.limit != 1:
         raise SystemExit("First-video review gate: --limit must be 1. Use --all-remaining only after explicit user continuation.")
@@ -162,7 +203,7 @@ def main() -> int:
         if str(job["job_id"]) not in manifest and submission_limit is not None and new_count >= submission_limit:
             break
         before = str(job["job_id"]) in manifest
-        record = create_job(job, manifest, manifest_path, key, args.model, args.duration)
+        record = create_job(job, manifest, manifest_path, key, args.model, args.duration, args.jobs_json.parent)
         records.append(record)
         if not before:
             new_count += 1

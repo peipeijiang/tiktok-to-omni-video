@@ -1,6 +1,6 @@
 # Omni Flash prompt contract
 
-This project writes text-to-video prompts only. Do not add reference tags, uploaded-media syntax, source URLs, or API keys to the prompt.
+This project writes clean English prompts. Do not add reference tags, uploaded-media syntax, source URLs, or API keys to the prompt. When a user approves a storyboard or pose reference, place it in the job's `reference_images` field; the runner sends it separately as Omni Flash `params.images`.
 
 ## Required order
 

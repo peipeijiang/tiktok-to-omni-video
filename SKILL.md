@@ -13,7 +13,7 @@ Analyze public TikTok clips from evidence, reconstruct their logic and emotion, 
 - Use `watch` to download metadata, captions, video, and frames. If the platform route or CLI is unavailable, state the fallback. Never invent unseen actions, dialogue, or objects.
 - Extract and inspect the complete audio track whenever technically available. Run the bundled local-audio analyzer; prefer the user's on-device MLX Whisper and automatically fall back to a configured local `whisper.cpp` installation before any cloud transcription route. Treat audio as first-class evidence: obtain timestamped speech, pauses, vocal delivery, background-music presence and structural changes, silence, laughter, impacts, and other sound effects. If audio cannot be extracted or interpreted, state the limitation and downgrade any audio-dependent claim from exact recreation to visual approximation.
 - Treat fast repeated motion as first-class evidence. `watch` establishes story, framing, subjects, and action meaning; it is not sufficient to measure a rapid gesture. For any action whose cadence affects the joke or fidelity, analyze the original at native frame rate with tracked points, then carry the measured motion contract into the Omni prompt and use the same measurements to QA the returned video.
-- Use T2V only: no reference-image/video tags or upload instructions inside prompts.
+- Keep prompts as clean English natural language: never put `@Video1`, `@Image1`, source URLs, or upload syntax in the prompt itself. When the user approves a pose/storyboard reference, put one to three image paths or URLs in the job's `reference_images` field; the runner maps that field to Omni Flash `params.images`.
 - Write all prompts in English.
 - Every output is exactly 10 seconds, vertical 9:16, 720P, one continuous uncut shot, realistic phone-captured quality rather than ultra-HD or polished cinema, with natural exposure and motion blur.
 - Save successful videos under `/Users/<user>/Desktop/wibly-videos` unless the user specifies another Desktop folder.
@@ -102,13 +102,13 @@ When a gesture is fast, cyclic, occluded, contact-sensitive, or central to the p
 
 ### Fast batch route for high-temporal actions
 
-For a batch, analyze each source once and cache its `motion-spec.json` and, when contact matters, `impact-spec.json`. Compile the checked English base prompt with `scripts/compile_omni_batch.py`. It produces three stable T2V-only variants per source in source order:
+For a batch, analyze each source once and cache its `motion-spec.json` and, when contact matters, `impact-spec.json`. Compile the checked English base prompt with `scripts/compile_omni_batch.py`. It produces three stable variants per source in source order; an optional one-to-three-image `reference_images` field is carried into every compiled job:
 
 1. `cadence`: preparation → directed extension → immediate recoil at the measured rate;
 2. `impact`: cadence plus anchor → target → visible contact → rebound causality;
 3. `framing`: impact plus a verified source composition lock.
 
-The batch input must provide a complete evidence-checked English `base_prompt`, `subject`, source ID, artifact paths, and framing lock. The compiler rejects `@Video`/`@Image` tags. It does not upload a source or install/download a model. Submit its job list with the existing manifest and first-video gate; after explicit continuation use `--all-remaining`.
+The batch input must provide a complete evidence-checked English `base_prompt`, `subject`, source ID, artifact paths, and framing lock. It may also provide `reference_images`: one to three local PNG/JPEG/WebP paths (relative to `batch.json`) or HTTP(S) URLs. The compiler rejects `@Video`/`@Image` tags in the prompt. It does not upload a source or install/download a model; the manifest runner sends approved references as `params.images`. Submit its job list with the existing manifest and first-video gate; after explicit continuation use `--all-remaining`.
 
 For each generated candidate, repeat tracking and, only when its target point remains valid in the generated framing, build a generated impact spec. Use `scripts/score_impact_batch.py` to rank rate, alternation, and geometric-contact similarity and return one repair profile. If framing moved or contact cannot be visually established, use `impact_visual_check`; never score arbitrary pixel coordinates as contact. See `docs/batch-impact-workflow.md` for the exact JSON formats.
 

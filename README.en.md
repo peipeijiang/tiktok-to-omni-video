@@ -2,7 +2,7 @@
 
 [简体中文](README.md) · **English**
 
-> Compile story, audio, and high-temporal-motion evidence from a short video into auditable Omni Flash T2V recreation prompts.
+> Compile story, audio, and high-temporal-motion evidence from a short video into auditable Omni Flash recreation prompts, with optional pose-storyboard reference images.
 
 [![CI](https://github.com/peipeijiang/tiktok-to-omni-video/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/peipeijiang/tiktok-to-omni-video/actions/workflows/ci.yml) [![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?style=flat-square)](https://www.python.org/) [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 
@@ -17,7 +17,7 @@ flowchart LR
   V --> T[Native-rate tracked points]
   T --> M[motion-spec.json]
   M --> I[impact-spec.json]
-  W --> P[English Omni T2V prompt]
+  W --> P[English Omni prompt]
   A --> P
   M --> P
   I --> P
@@ -63,9 +63,21 @@ The final command prints an English motion paragraph that can be inserted into a
 
 ## Omni Flash only
 
-This is a T2V-only workflow: prompts contain English natural language, never `@Video1`, `@Image1`, or reference-upload syntax. Each job is a 10-second, 9:16, 720P continuous phone shot. The first job must download and pass container, duration, and dimension checks before the queue continues.
+Prompts always contain clean English natural language, never `@Video1`, `@Image1`, source URLs, or upload syntax. The default route is text-to-video; when the user explicitly approves a pose/storyboard, put one to three PNG/JPEG/WebP paths (relative to the job file) or HTTP(S) URLs in the job's `reference_images` field. The runner sends them separately as Omni Flash `params.images`. Each job is a 10-second, 9:16, 720P continuous phone shot. The first job must download and pass container, duration, and dimension checks before the queue continues.
 
 A fast action needs an actor, forward direction, measured rate, extension-to-recoil path, stable anchors, and an endpoint. `fast punches` is not enough; use the measured cadence, compact guard, short extension, and immediate recoil. See [motion analysis](docs/motion-analysis.md) and the [Omni prompt contract](docs/omni-prompt-contract.md).
+
+## Pose-storyboard references
+
+Storyboards make pose grammar, camera side, and cyclic action easier to hold; they do not replace the native-rate motion specification. Add one to three authorized images to a batch:
+
+```json
+{
+  "reference_images": ["cat-pose-board.jpg", "opening-pose.jpg"]
+}
+```
+
+The compiler preserves the field. At request time the runner encodes local images as image data and passes remote URLs through to `params.images`; image bytes are not saved in the job JSON or manifest. The prompt must still say that the images are pose/composition references only and must not become a collage.
 
 ## Fast batches and impact
 
@@ -94,7 +106,7 @@ When cadence misses, revise only the motion paragraph and preserve subject, envi
 
 - Analyze only media you own, are licensed to use, or are authorized to process. Do not publish source video, private likenesses, readable watermarks, or brand marks.
 - API keys are read only from environment variables, never from job JSON, logs, or this repository.
-- Measured motion constraints improve T2V control; they cannot guarantee pixel- or trajectory-identical output.
+- Measured motion constraints and approved storyboard references improve control; they cannot guarantee pixel- or trajectory-identical output.
 - The pre-upgrade skill snapshot is retained in [archive/original-skill](archive/original-skill) for auditability.
 
 ## Development

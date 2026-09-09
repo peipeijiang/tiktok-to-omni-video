@@ -2,7 +2,7 @@
 
 **简体中文** · [English](README.en.md)
 
-> 将本地或公开短视频中的故事、声音与高速动作证据，编译为可核验的 Omni Flash T2V 复刻提示词。
+> 将本地或公开短视频中的故事、声音与高速动作证据，编译为可核验的 Omni Flash 复刻提示词；可选上传姿态故事版作为参考图。
 
 [![CI](https://github.com/peipeijiang/tiktok-to-omni-video/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/peipeijiang/tiktok-to-omni-video/actions/workflows/ci.yml) [![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?style=flat-square)](https://www.python.org/) [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 
@@ -17,7 +17,7 @@ flowchart LR
   V --> T[原始帧率轨迹]
   T --> M[motion-spec.json]
   M --> I[impact-spec.json]
-  W --> P[Omni 英文 T2V 提示词]
+  W --> P[Omni 英文提示词]
   A --> P
   M --> P
   I --> P
@@ -63,9 +63,21 @@ python3 scripts/render_omni_motion_block.py artifacts/source-motion-spec.json \
 
 ## Omni Flash 专用原则
 
-这是纯 T2V 工作流：提示词只写英文自然语言，不写 `@Video1`、`@Image1` 或上传引用。每条任务固定为 10 秒、9:16、720P、一个连续手机镜头；首条任务下载并通过容器、时长和尺寸检查后才允许继续队列。
+提示词始终只写英文自然语言，不写 `@Video1`、`@Image1`、源素材 URL 或上传语法。默认可走纯文生；当用户明确批准姿态/故事版时，在任务 JSON 的 `reference_images` 中给出 1–3 张 PNG/JPEG/WebP（相对任务文件的路径或 HTTP(S) URL），运行器会将其作为 Omni Flash `params.images` 单独发送。每条任务固定为 10 秒、9:16、720P、一个连续手机镜头；首条任务下载并通过容器、时长和尺寸检查后才允许继续队列。
 
 对于高速动作，提示词必须包含动作主体、前冲方向、测得频率、前冲→回收路径、稳定物和终态。例如，不能只写 `fast punches`，而要写每只前爪的测得连击速率、紧凑起手、短路径前冲和立即回收。完整规则见 [运动分析文档](docs/motion-analysis.md) 与 [Omni 提示词契约](docs/omni-prompt-contract.md)。
+
+## 姿态故事版参考图
+
+故事版用于补足文字难以稳定表达的姿势、镜头方位和动作循环，不替代原始帧率运动规格。将 1–3 张已获授权的参考图加入批次：
+
+```json
+{
+  "reference_images": ["cat-pose-board.jpg", "opening-pose.jpg"]
+}
+```
+
+编译器会原样保留字段；运行器会在请求时把本地图片编码为图像数据，并把远程 URL 原样传入 `params.images`。图片字节不会写入任务 JSON 或 manifest。提示词仍须明确“参考图仅用于姿态/构图，不生成拼贴画”。
 
 ## 快速批量与击中感
 
@@ -94,7 +106,7 @@ python3 scripts/compare_motion_specs.py artifacts/source-motion-spec.json \
 
 - 仅分析你拥有、获许可或有权处理的素材；不要公开上传原视频、人物肖像、可读水印或品牌素材。
 - API 密钥只从环境变量读取，绝不写入任务 JSON、日志或仓库。
-- 量化运动约束能提高 T2V 的可控性，但不能保证逐像素或逐轨迹完全一致。
+- 量化运动约束和已批准的故事版参考图能提高可控性，但不能保证逐像素或逐轨迹完全一致。
 - 初始版本备份保存在 [archive/original-skill](archive/original-skill)，便于审计升级前后差异。
 
 ## 开发

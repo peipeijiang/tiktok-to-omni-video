@@ -40,7 +40,7 @@ The axis points in the visual direction of the strike. Check the resulting exten
 
 ## Prompt integration
 
-Append the generated motion paragraph after the scene and inventory paragraph, then preserve the existing one-shot, 10-second, 9:16 Omni lock. Keep only one primary motion demand. A reference video is never named in the prompt because this workflow is T2V only.
+Append the generated motion paragraph after the scene and inventory paragraph, then preserve the existing one-shot, 10-second, 9:16 Omni lock. Keep only one primary motion demand. Do not name a source video or use reference tags in the prompt; an approved pose/storyboard image is instead carried separately by the job's `reference_images` field and sent as `params.images`.
 
 ## QA
 
