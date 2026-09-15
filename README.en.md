@@ -117,6 +117,10 @@ python3 -m unittest discover -s tests -v
 
 Contributions are welcome through Issues and Pull Requests. See [troubleshooting](docs/troubleshooting.md).
 
+## Acknowledgements and contributors
+
+This project is based on [5-icecream's TikTok-to-Omni-Video](https://github.com/5-icecream/TikTok-to-Omni-Video). The original skill and initial implementation were created by [@5-icecream](https://github.com/5-icecream). The upstream commit history is merged into this repository to preserve the original author's authorship and contribution record.
+
 ## License
 
 [MIT](LICENSE)

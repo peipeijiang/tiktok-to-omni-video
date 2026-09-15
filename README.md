@@ -117,6 +117,10 @@ python3 -m unittest discover -s tests -v
 
 欢迎通过 Issue 或 Pull Request 提交追踪器适配器、测试样本的合成轨迹或文档改进。详见 [故障排查](docs/troubleshooting.md)。
 
+## 致谢与贡献者
+
+本项目基于 [5-icecream 的 TikTok-to-Omni-Video](https://github.com/5-icecream/TikTok-to-Omni-Video)，原始技能与初始实现由 [@5-icecream](https://github.com/5-icecream) 创建。原仓库的提交历史已并入本仓库，以保留原作者的真实作者信息与贡献记录。
+
 ## 许可证
 
 [MIT](LICENSE)
